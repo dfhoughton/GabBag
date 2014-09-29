@@ -298,7 +298,11 @@ addFilter = ->
     if /\W/.test t
       text.notify 'The word to filter on should contain only word characters.'
       return
-    f = makeFilter ba.prop('checked'), t
+    try
+      f = makeFilter ba.prop('checked'), t
+    catch error
+      text.notify error
+      return
     insertFilter f, t
     done()
   ti.keypress (e) ->
@@ -319,17 +323,29 @@ locate = (over, under, v) ->
     top: p.top + v + 'px'
   )
 # wire up the always/never cell in a filter row
-makeInverter = (an, f) ->
+makeInverter = (an, f, x, row) ->
   m = if f.m then 'always' else 'never'
+  s = "#{f.x}"
   an.text m
   an.click (e) ->
     e.stopPropagation()
     inverted = { x: f.x, m: !f.m }
     for fi, i in filters
-      if fi == f
+      if "#{fi.x}" == s
         filters[i] = inverted
         break
-    makeInverter an, inverted
+    makeInverter an, inverted, x, row
+    applyAllFilters()
+  x.unbind 'click'
+  x.click (e) ->
+    e.stopPropagation()
+    for fi, i in filters
+      if "#{fi.x}" == s
+        filters.splice i, 1
+        break
+    row.remove()
+    if filters.length == 0
+      filterTable.hide()
     applyAllFilters()
 # generates the frequently-used cancel button -- just the node, not the code
 xButton = (type) ->
@@ -347,26 +363,19 @@ insertFilter = (f, t) ->
   m = if f.m then 'always' else 'never'
   row = $ "<tr><td>&ldquo;#{t}&rdquo;</td><td class='an'></td><td><span class='X'/></td></tr>"
   an = row.find 'td[class=an]'
-  makeInverter an, f
-  span = row.find 'span'
-  span.text 'X'
-  span.attr 'title', 'Delete filter.'
-  span.tooltip()
-  span.click (e) ->
-    e.stopPropagation()
-    for fi, i in filters
-      if fi == f
-        filters.splice i, 1
-        break
-    row.remove()
-    if filters.length == 0
-      filterTable.hide()
-    applyAllFilters()
+  x = row.find 'span'
+  makeInverter an, f, x, row
+  x.text 'X'
+  x.attr 'title', 'Delete filter.'
+  x.tooltip()
   filterTable.append(row)
   filterTable.show()
   applyAllFilters()
 makeFilter = (must, text) ->
   rx = new RegExp '\\b' + text + '\\b', 'i'
+  s = "#{rx}"
+  for f in filters
+    throw "You already have a filter based on '#{text}'" if s == "#{f.x}"
   return { m: must, x: rx }
 # filter all results
 applyAllFilters = ->
