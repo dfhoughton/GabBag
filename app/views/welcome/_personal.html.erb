@@ -1,0 +1,132 @@
+<div class="row">
+  <div class="col-md-5" id="filters">
+    <h3 class="centered">Filters
+      <div class="explanation" title="Cull anagrams from the list">Ordinary phrases may have thousands, or hundreds of
+        thousands, of anagrams. Often you will find that some contain obscure words and are of no interest to you. On
+        the other hand, you may find that you want only those anagrams that contain a particular word. Create filters to
+        thin the list to only those anagrams that interest you.
+      </div>
+    </h3>
+    <div class="buttonbox pad">
+      <span id="filter">Make a filter</span>
+      <span id="clear">Clear filters</span>
+    </div>
+    <table id="filter_table">
+      <tr>
+        <th colspan="3">filtered out: <span>0</span></th>
+      </tr>
+    </table>
+
+    <h3 class="centered">Friends
+      <div class="explanation" title="People you can share anagrams with">
+        <p>Find friends by typing a query in the search
+          field. Those who have befriended you can subscribe to your favorites. If each of you is the other's friend,
+          you can share favorites back and forth.</p>
+
+        <p>The mutuality of friendships are indicated by colored blocks. Those whom you have befriended are marked in
+          yellow. Those who have befriended you are orange. Where the
+          relationship is mutual they are marked in green.</p>
+
+        <p>In addition to explicitly sharing information, you can subscribe to an individual you have befriended. You
+          will receive a notification whenever this individual marks an anagram as a favorite. If you have notifications
+          from a particular friend, this friend's name will be marked with a white border. You can click it to receive
+          the notifications. The nature of the subscription relationship is indicated by the following symbols.</p>
+
+        <dl id="symbol_definitions">
+          <dt>meToThem</dt>
+          <dd>You have subscribed to this friend's favorites.</dd>
+          <dt>themToMe</dt>
+          <dd>This friend has subscribed to your favorites.</dd>
+          <dt>mutual</dt>
+          <dd>Each of you has subscribed to the other's favorites.</dd>
+        </dl>
+      </div>
+    </h3>
+    <span id="friend">Find a friend</span>
+    <table id="friend_table"></table>
+
+  </div>
+  <div class="col-md-2">
+    <div class="centered" id="try">
+      <div>
+        <h2 class="centered">Anagramize
+          <div class="explanation blueborder" title="Generate anagrams">Type something in the text window below and type
+            return. A list of anagrams will appear. You can click these to select them for editing and sharing.
+          </div>
+        </h2>
+
+        <%= form_for :full, :html => {:id => 'trial'}, url: {controller: 'anagrams', action: :full} do |f| %>
+            <%= f.text_field :text, class: 'centered', 'data-toggle' => :tooltip, 'data-placement' => :bottom, :title => 'Type text and press enter.' %>
+        <% end %>
+        <ol id="results"></ol>
+      </div>
+    </div>
+  </div>
+  <div class="col-mid-5">
+    <h3 class="centered">Favorites
+      <div class="explanation" title="Saved anagrams">If you mark an anagram you discover or are given as a favorite, it
+        will appear in the list below.
+      </div>
+    </h3>
+    <table id="favorites_table"></table>
+
+  </div>
+</div>
+<script>
+    $(function () {
+        initializeContext({
+            pollingInterval: <%= Rails.configuration.polling_interval * 1000 %>,
+            pollingUrl: '<%= notifications_recent_url %>',
+            friends: {
+                search: {
+                    url: '<%= prospective_friends_url %>'
+                },
+                create: {
+                    url: '<%= friends_url %>',
+                    method: 'POST'
+                },
+                delete: {
+                    url: '<%= friend_url :id %>',
+                    method: 'DELETE'
+                },
+                subscribe: {
+                    url: '<%= friend_url :id %>',
+                    method: 'PUT'
+                },
+                mine: {
+                    url: '<%= my_friends_url %>',
+                    method: 'GET'
+                }
+            },
+            favorites: {
+                mine: {
+                    url: '<%= favorites_url %>',
+                    method: 'GET'
+                },
+                create: {
+                    url: '<%= favorites_url %>',
+                    method: 'POST'
+                },
+                delete: {
+                    url: '<%= delete_favorite_url %>',
+                    method: 'DELETE'
+                }
+            },
+            anagrams: {
+                create: {
+                    url: '<%= anagrams_url %>',
+                    method: 'POST'
+                },
+                share: {
+                    url: '<%= share_url :recipient %>',
+                    method: 'GET'
+                }
+            },
+            relSymbols: {
+                meToThem: '&#8658;',
+                themToMe: '&#8658;',
+                mutual: '&#8660;'
+            }
+        });
+    });
+</script>

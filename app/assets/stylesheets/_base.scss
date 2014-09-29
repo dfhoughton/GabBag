@@ -1,0 +1,250 @@
+$font-serif: 'Liberation Serif', serif;
+$font-sans: Helvetica, sans-serif;
+$red: darkred;
+$blue: #3333cc;
+$mutual: green;
+$theirs: orange;
+$mine: yellow;
+$primary-color: white;
+$button-font-size: 1.5em;
+$button-padding: .2em;
+
+@mixin border-radius($radius) {
+  -webkit-border-radius: $radius;
+  -moz-border-radius: $radius;
+  -ms-border-radius: $radius;
+  border-radius: $radius;
+}
+
+/* to be extended */
+.span_button {
+  font-size: 1.5em;
+  padding: .2em .5em;
+  margin: 1em;
+  @include border-radius(1em);
+  border: 1px solid white;
+  cursor: pointer;
+}
+
+body {
+  font: 100% $font-serif;
+  color: $primary-color;
+  background-color: $blue;
+  margin: 3em 4em;
+  padding-top: 50px;
+}
+
+#edit {
+  margin-left: 1em;
+}
+
+#auth_p {
+  margin-top: 20px;
+}
+
+#auth_p span {
+  color: white;
+}
+
+.centered {
+  display: table;
+  margin: auto;
+}
+
+.centered_button {
+  @extend .span_button;
+  @extend .centered;
+  margin-top: .5em;
+  margin-bottom: .5em;
+}
+
+/* some stuff for explanatory dialogs */
+.explanation {
+  display: none;
+}
+
+.no-close .ui-dialog-titlebar-close {
+  display: none;
+}
+
+.qmark {
+  cursor: pointer;
+  vertical-align: baseline;
+  position: relative;
+  top: -0.4em;
+  font-size: 0.4em;
+  margin: .4em;
+  padding: .1em .55em;
+  border: .15em solid white;
+  @include border-radius(1em);
+}
+
+.blueborder {
+  border-color: $blue;
+}
+
+/* make results pretty */
+#results {
+  margin: .5em;
+}
+
+/* for sorting words in anagrams */
+.rearrangeable {
+  display: table;
+  margin: .5em auto;
+  padding: 0;
+}
+
+.buttonbox {
+  display: table;
+  margin: auto;
+}
+
+.buttonbox button {
+  margin: .5em;
+  @include border-radius(1em);
+}
+
+.rearrangeable li {
+  display: inline;
+  font-size: 2em;
+  list-style-type: none;
+  margin: 0 .5em;
+  cursor: pointer;
+}
+
+.rearranger, .filter_maker, #find_friend, .subscribe {
+  display: table;
+  box-shadow: 0 0 10px black;
+  font-size: 8pt;
+  margin: .5em;
+  padding: .5em;
+  color: black;
+  background-color: white;
+  @include border-radius(1em);
+}
+
+#find_friend {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#find_friend h5 {
+  display: table;
+  margin: auto;
+}
+
+#find_friend ul {
+  margin: .5em auto;
+  display: table;
+  padding: .2em;
+}
+
+#find_friend li {
+  color: $red;
+  list-style-type: none;
+  cursor: pointer;
+}
+
+.filter_maker > .in_maker {
+  margin: 0 .5em;
+}
+
+#friend {
+  @extend .centered_button;
+}
+
+#friend_table {
+  margin: 1em auto;
+  font-size: 1.5em;
+}
+
+#filter, #clear {
+  @extend .span_button;
+  margin: .5em;
+}
+
+.pad {
+  padding: 1em;
+}
+
+.X {
+  font-weight: bold;
+  font-family: $font-sans;
+  padding: .2em .5em;
+  margin: 1em;
+  cursor: pointer;
+  font-size: .5em;
+  vertical-align: middle;
+}
+
+button.X {
+  font-size: 1em;
+}
+
+#filter_table {
+  margin: 1em auto 2em auto;
+  border-top: 1px solid white;
+  border-bottom: 1px solid white;
+  font-size: 2em;
+}
+
+#filter_table th {
+  text-align: center;
+  font-size: .75em;
+}
+
+#filter_table td, #filter_table th {
+  padding: .25em;
+}
+
+#favorites_table {
+margin: 1em auto 0 auto;
+  font-size: 2em;
+}
+
+.an {
+  cursor: pointer;
+}
+
+.sharees {
+  padding: 0 1em;
+}
+
+.sharees h5, .subscribe h5 {
+  display: table;
+  margin: auto;
+}
+
+.sharees table {
+  margin: auto;
+}
+
+.sharees td {
+  color: $red;
+}
+
+.R {
+  display: inline-block;
+  min-width: 1em;
+  min-height: 1em;
+  margin: .1em .2em;
+  color: black;
+  text-align: center;
+  @include border-radius(.2em);
+}
+
+.R.mutual {
+  background-color: $mutual;
+  color: white;
+  cursor: pointer;
+}
+
+.R.theirs {
+  background-color: $theirs;
+}
+
+.R.mine {
+  background-color: $mine;
+  cursor: pointer;
+}

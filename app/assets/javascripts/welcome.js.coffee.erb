@@ -1,0 +1,32 @@
+# page initialization
+$ ->
+  $('#pitch').hide()
+  $('#full_text').keypress (e) ->
+    if e.which == 13
+      e.preventDefault()
+      $('#trial').submit()
+      $('#full_text').attr 'disabled', 'disabled'
+      $('body').css 'cursor', 'progress'
+# controller-specific code
+appNames = [<%= Rails.configuration.name_variants.map { |n| "'#{n.join(' ').capitalize}'" }.join "," %>]
+window.slideEffect = ->
+  t = $('#changey')
+  defText = 'Social Anagrams'
+  t.text defText + '!'
+  useDef = false
+  change = ->
+    if useDef
+      newName = defText
+    else
+      i = Math.floor Math.random() * appNames.length
+      newName = appNames[i]
+    newName += '!'
+    useDef = !useDef
+    t.toggle(
+      "slide",
+      { direction: "left" },
+      ->
+        t.text newName
+        t.toggle "slide", { direction: 'right' }
+    )
+  setInterval change, 3000

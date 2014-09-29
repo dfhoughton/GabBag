@@ -1,0 +1,17 @@
+<h1 class="centered" id="name">Gab Bag</h1>
+<div class="centered" id="changey"></div>
+<script type="text/javascript">slideEffect()</script>
+<div class="centered" id="try">
+  <div>
+    <h2 class="centered">Try it!</h2>
+
+    <%= form_for :trial, :html => {:id => 'trial'}, remote: true, method: 'get', url: {controller: 'anagrams', action: :trial} do |f| %>
+        <%= f.text_field :text, class: 'centered', 'data-toggle' => :tooltip, 'data-placement' => :bottom, :title => 'Type text and press enter.' %>
+    <% end %>
+    <ol id="results"></ol>
+  </div>
+</div>
+<div id="pitch" class="centered">
+  If you sign up, you can filter anagram lists, rearrange words, save favorites, subscribe to friends, and share
+  anagrams.
+</div>
