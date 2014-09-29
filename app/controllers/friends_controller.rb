@@ -70,7 +70,7 @@ class FriendsController < ApplicationController
   # TODO handle error state where friend does not exist
   def update
     friend = Friend.find params[:id]
-    subscribed = params[:subscribed] == 1
+    subscribed = !friend.subscribed
     friend.update subscribed: subscribed
     message = {
         type: 'subscribe',
