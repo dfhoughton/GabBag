@@ -607,6 +607,7 @@ postInit = () ->
       for a in data.favorites
         insertAna a
   )
+  poll()
 
 # the template should call this, filling in the page context
 # TODO: document the expected values
