@@ -2,7 +2,7 @@ $font-serif: 'Liberation Serif', serif;
 $font-sans: Helvetica, sans-serif;
 $red: darkred;
 $blue: #3333cc;
-$mutual: green;
+$mutual: #00cc33;
 $theirs: orange;
 $mine: yellow;
 $primary-color: white;
@@ -229,15 +229,13 @@ margin: 1em auto 0 auto;
   min-width: 1em;
   min-height: 1em;
   margin: .1em .2em;
-  color: black;
+  color: $blue;
   text-align: center;
   @include border-radius(.2em);
 }
 
 .R.mutual {
   background-color: $mutual;
-  margin: 1px solid white;
-  color: white;
   cursor: pointer;
 }
 
