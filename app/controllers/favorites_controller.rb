@@ -1,7 +1,7 @@
 class FavoritesController < ApplicationController
   def index
     favorites = []
-    current_user.favorites.each do |f|
+    current_user.favorites.includes(:anagram, :phrase, :child).each do |f|
       a = f.anagram
       favorites << { id: f.id, source: a.phrase.text, anagram: a.child.text }
     end

@@ -2,7 +2,7 @@ class FriendsController < ApplicationController
   before_action :authenticate_user!
   # the current user's friends
   def mine
-    friends = Friend.where "user_id = :id OR other_id = :id ", {:id => current_user.id}
+    friends = Friend.includes(:other).where "user_id = :id OR other_id = :id ", {:id => current_user.id}
     map = {} # a map from others to their relationships
     friends.each do |f|
       id = f.user_id == current_user.id ? f.other_id : f.user_id
