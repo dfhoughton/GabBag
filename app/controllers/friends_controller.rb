@@ -67,9 +67,9 @@ class FriendsController < ApplicationController
   end
 
   # for toggling the subscription state on and off
-  # TODO handle error state where friend does not exist
   def update
-    friend = Friend.find params[:id]
+    friend = current_user.friends.find params[:id]
+    return render json: { error: "This doesn't seem to be your friend" } if friend.nil?
     subscribed = !friend.subscribed
     friend.update subscribed: subscribed
     message = {

@@ -433,6 +433,9 @@ subWidget = (rs, data) ->
       type: context.friends.subscribe.method
       url: context.friends.subscribe.url.replace /\bid$/, data.id
       success: (d) ->
+        if d.error
+          b.notify d.e
+          return
         div.remove()
         subW = undefined
         data.subscribed_to_them = !data.subscribed_to_them
