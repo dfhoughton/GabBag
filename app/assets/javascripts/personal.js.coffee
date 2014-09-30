@@ -475,6 +475,11 @@ subWidget = (rs, data) ->
   locate rs, div
   rs.append div
   centerUnder div, rs
+# deletes a friend
+deleteFriend = (email) ->
+  acquaintances[email] = undefined
+  row = ( $.grep $('#friend_table tr'), (e,i) -> $(e).find('td:first').text() == email )[0]
+  $(row).remove() if row?
 # takes friend data and adds it to the friends table
 addFriend = (data) ->
   acquaintances[data.email] = data
@@ -606,9 +611,15 @@ poll = (url, method) ->
           when 'friend'
             f = acquaintances[n.email]
             if f?
-              f.mutual = n.change == 1
-              addFriend f
-            else
+              if n.change == 1
+                f.mutual = true
+                addFriend f
+              else if f.mutual
+                f.mutual = false
+                addFriend f
+              else
+                deleteFriend f.email
+            else if n.change == 1
               data = email: n.email, own: false, mutual: false, id: n.id, other_id: n.other_id
               addFriend data
           when 'subscribe'
