@@ -104,6 +104,7 @@ sharers = ->
   for own email, data of acquaintances
     s.push data if data.mutual
   return s
+# pops up the sharing thing
 share = (ana, div) ->
   recipients = {}
   d = $ '<div class="sharees"/>'
@@ -144,6 +145,7 @@ share = (ana, div) ->
             b.notify data.message, 'info'
       )
   return d
+# saves a favorite to the anagrams table and, upon success, displays it in the favorites table
 makeFavorite = (ana) ->
   $.ajax(
     type: context.favorites.create.method
@@ -153,8 +155,11 @@ makeFavorite = (ana) ->
       insertAna data if data.anagram
       # TODO handle errors
   )
+# hide the first few cells in the favorites section so only the first anagram from a particular source has them
 hideFirst = (row) ->
   row.find('td span:not([class=X])').hide()
+# adjusts the visibility of the first cells in the rows of the favorites table so the arrows and sources appear in
+# the right places
 adjustHidden = (text) ->
   same = $.grep(
     favoritesTable.find('tr'),
@@ -209,6 +214,7 @@ insertAna = (ana) ->
           row.remove()
           adjustHidden s
     )
+# generates the struct used to represent an anagram client side
 makeAna = (ul, s) ->
   texts = for li in ul.find('li')
     $(li).text()
@@ -218,12 +224,14 @@ yankWidget = ->
   if clickedAnagram?
     clickedAnagram.remove()
     clickedAnagram = undefined
+# puts the anagram widget in the right place on the page
 showWidget = (widget, container, centerer) ->
   yankWidget()
   clickedAnagram = widget
   locate container, widget
   container.append widget
   centerUnder widget, centerer
+# generates the round thingy that lets you mess about with an anagram and share or store it
 anaWidget = (words, src) ->
   div = roundDiv cz: 'rearranger'
   sharer = undefined
@@ -263,13 +271,14 @@ anaWidget = (words, src) ->
   div.append(bb)
   return div
 # locate one absolutely positioned element relative to another element
+# the code related to this could be refactored and consolidated
 centerUnder = (move, fixed) ->
   p1 = fixed.position()
   x1 = fixed.outerWidth()
   x2 = move.outerWidth()
   finalX = p1.left + x1 / 2 - x2 / 2
   move.css 'left', finalX
-# filter code
+# filter code; pops up the filter maker widget
 addFilter = ->
   return if filterMaker?
   filterMaker = div = roundDiv cz: 'filter_maker'
@@ -323,6 +332,7 @@ locate = (over, under, v) ->
     top: p.top + v + 'px'
   )
 # wire up the always/never cell in a filter row
+# this should probably be refactored; it shows the symptoms of unplanned organic growth
 makeInverter = (an, f, x, row) ->
   m = if f.m then 'always' else 'never'
   s = "#{f.x}"
@@ -352,12 +362,14 @@ xButton = (type) ->
   b = $ '<button class="X">X</button>'
   b.attr 'type', type if type?
   return b
+# makes the base of the round widget that pops up all over the place
 roundDiv = (opts) ->
   opts ||= {}
   d = $ '<div/>'
   d.attr 'class', opts.cz if opts.cz?
   d.attr 'id', opts.id if opts.id?
   return d
+# inject a filter into the filters list
 insertFilter = (f, t) ->
   filters.push f
   m = if f.m then 'always' else 'never'
@@ -371,6 +383,7 @@ insertFilter = (f, t) ->
   filterTable.append(row)
   filterTable.show()
   applyAllFilters()
+# convert the stuff entered into the filter maker widget into something we can push into the filters list
 makeFilter = (must, text) ->
   rx = new RegExp '\\b' + text + '\\b', 'i'
   s = "#{rx}"
@@ -415,6 +428,7 @@ addRelClass = (span, data) ->
   else if data.own
     c = 'mine'
   span.addClass c
+# puts the arrow, or lack thereof, into the relationship box
 addRelSymbol = (span, data) ->
   [ me, them ] = [ data.subscribed_to_me, data.subscribed_to_them ]
   if me || them
@@ -426,6 +440,7 @@ addRelSymbol = (span, data) ->
     else
       t = context.relSymbols.meToThem
     span.html t
+# makes the little widget that lets you subscribe/unsubscribe
 subWidget = (rs, data) ->
   subW.remove if subW?
   subW = div = roundDiv cz: 'subscribe'
@@ -460,6 +475,7 @@ subWidget = (rs, data) ->
   locate rs, div
   rs.append div
   centerUnder div, rs
+# takes friend data and adds it to the friends table
 addFriend = (data) ->
   acquaintances[data.email] = data
   ft = $ '#friend_table'
@@ -591,11 +607,13 @@ poll = ->
             console.log 'subscribe', n
           else throw new Error("unhandled notification type: #{n.type}")
   )
+# makes sure the relationship symbols in the explanatory text match the generated doodads
 insertSymbolDefinitions = () ->
   terms = $ '#symbol_definitions dt'
   for own k, v of context.relSymbols
     dt = ( $.grep terms, (e,i) -> $(e).text() == k )[0]
     $(dt).html v
+# all the stuff to do as soon as we have the page's contextual information (really just app information)
 postInit = () ->
   insertSymbolDefinitions()
   init()
