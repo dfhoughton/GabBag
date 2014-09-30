@@ -49,20 +49,13 @@ class FriendsController < ApplicationController
     friend = Friend.create user_id: current_user.id, other_id: params[:id]
     o = friend.other
     datum = {id: friend.id, email: o.email, own: true}
-    f = o.friends.where(:other_id => current_user.id).take
-    if f
-      datum[:subscribed_to_me] = f.subscribed
+    reciprocal = friend.mutual
+    if reciprocal
+      datum[:subscribed_to_me] = reciprocal.subscribed
       datum[:mutual] = true
-      datum[:other_id] = f.id
+      datum[:other_id] = reciprocal.id
     end
-    # notify the new friend
-    message = {
-        type: 'friend',
-        id: current_user.id,
-        email: current_user.email,
-        change: 1 # add a friendship
-    }
-    Notification.create user: o, body: message.to_json
+    notify friend, 1
     render json: datum
   end
 
@@ -71,31 +64,38 @@ class FriendsController < ApplicationController
     friend = current_user.friends.find params[:id]
     return render json: { error: "This doesn't seem to be your friend" } if friend.nil?
     subscribed = !friend.subscribed
+    change = subscribed ? 1 : -1
     friend.update subscribed: subscribed
-    message = {
-        type: 'subscribe',
-        id: current_user.id,
-        email: current_user.email,
-        change: subscribed ? 1 : -1
-    }
-    Notification.create user: friend.other, body: message.to_json
+    notify friend, change, 'subscribe'
     render json: {success: subscribed == friend.subscribed}
   end
 
   # ends friendship
-  # TODO handle error state where friend does not exist
   def destroy
-    friend = Friend.find params[:id]
+    friend = current_user.friends.find params[:id]
+    render json: { error: "#{params[:id]} is not your friend" } unless friend
+    notify friend, -1
+    notify friend, -1, 'subscribe' if friend.subscribed
     success = friend.destroy
-    if success
-      message = {
-          type: 'friend',
-          id: current_user.id,
-          email: current_user.email,
-          change: -1
-      }
-      Notification.create user: friend.other, body: message.to_json
-    end
     render json: {success: success}
+  end
+
+  private
+
+  # create a notification of a friendship change
+  def notify(f, change, type = 'friend')
+    reciprocal = f.mutual
+    message = {
+        type: type,
+        email: current_user.email,
+        change: change
+    }
+    if reciprocal
+      message[:id] = reciprocal.id
+      message[:other_id] = f.id
+    else
+      message[:id] = f.id
+    end
+    Notification.create user: f.other, body: message.to_json
   end
 end

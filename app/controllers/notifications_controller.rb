@@ -49,7 +49,7 @@ class NotificationsController < ApplicationController
             type[id] = true
           end
         when 'friend', 'subscribe'
-          id = body['id']
+          id = body['from']
           change = body['change']
           if type[id]
             if change != type[id][:last]
@@ -73,7 +73,7 @@ class NotificationsController < ApplicationController
         when 'share'
           true
         when 'friend', 'subscribe'
-          id = body['id']
+          id = body['from']
           if set.include? id
             false
           else

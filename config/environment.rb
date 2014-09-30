@@ -13,7 +13,7 @@ SocialAnagrams::Application.configure do
   config.max = 40
   config.limit = 40
   config.trial_max = 30
-  config.polling_interval = 60
+  config.polling_interval = 10
 end
 
 module SocialAnagrams

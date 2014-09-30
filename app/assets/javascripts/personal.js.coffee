@@ -604,9 +604,22 @@ poll = (url, method) ->
           when 'share'
             console.log 'share', n
           when 'friend'
-            console.log 'befriend', n
+            f = acquaintances[n.email]
+            if f?
+              f.mutual = n.change == 1
+              addFriend f
+            else
+              data = email: n.email, own: false, mutual: false, id: n.id, other_id: n.other_id
+              addFriend data
           when 'subscribe'
-            console.log 'subscribe', n
+            f = acquaintances[n.email]
+            if f?
+              f.subscribed_to_me = n.change == 1
+              addFriend f
+            else # we should never get here
+              data = email: n.email, own: true, mutual: true, id: n.id, other_id: n.other_id
+              data.subscribed_to_me = n.change == 1
+              addFriend data
           else throw new Error("unhandled notification type: #{n.type}")
   )
 # makes sure the relationship symbols in the explanatory text match the generated doodads
