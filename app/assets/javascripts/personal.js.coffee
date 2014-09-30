@@ -592,10 +592,12 @@ findFriend = ->
   $('#friend').after div
   ip.focus()
 # look for fresh notices
-poll = ->
+poll = (url, method) ->
+  url ||= context.notifications.recent.url
+  method ||= context.notifications.recent.method
   $.ajax(
-    type: 'GET'
-    url: context.pollingUrl
+    type: method
+    url: url
     success: (notifications) ->
       for n in notifications
         switch n.type
@@ -618,7 +620,7 @@ postInit = () ->
   insertSymbolDefinitions()
   init()
   # begin poller
-  setInterval poll, context.pollingInterval
+  setInterval poll, context.notifications.interval
   # fill up the friends table
   $.ajax(
     type: context.friends.mine.method
@@ -634,7 +636,7 @@ postInit = () ->
       for a in data.favorites
         insertAna a
   )
-  poll()
+  poll(context.notifications.unread.url, context.notifications.unread.method)
 
 # the template should call this, filling in the page context
 # TODO: document the expected values

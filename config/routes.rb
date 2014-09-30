@@ -21,7 +21,7 @@ Rails.application.routes.draw do
   get 'anagrams/full' => 'anagrams#full'
   get 'anagrams/share/:recipient' => 'anagrams#share', as: :share
   get 'notifications/recent' => 'notifications#recent', as: :recent_notifications
-  get 'notifications/all/:id' => 'notifications#all', as: :all_notifications
+  get 'notifications/unread' => 'notifications#unread', as: :unread_notifications
   get 'friends/prospects' => 'friends#prospects', as: :prospective_friends
   get 'friends/mine' => 'friends#mine', as: :my_friends
   delete 'favorites/delete' => 'favorites#destroy', as: :delete_favorite

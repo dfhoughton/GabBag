@@ -75,8 +75,17 @@
 <script>
     $(function () {
         initializeContext({
-            pollingInterval: <%= Rails.configuration.polling_interval * 1000 %>,
-            pollingUrl: '<%= notifications_recent_url %>',
+            notifications: {
+                interval: <%= Rails.configuration.polling_interval * 1000 %>,
+                recent: {
+                    url: '<%= recent_notifications_url %>',
+                    method: 'GET'
+                },
+                unread: {
+                    url: '<%= unread_notifications_url %>',
+                    method: 'GET'
+                }
+            },
             friends: {
                 search: {
                     url: '<%= prospective_friends_url %>'
