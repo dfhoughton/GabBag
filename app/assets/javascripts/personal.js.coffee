@@ -183,9 +183,9 @@ insertAna = (ana) ->
   row = $ "<tr><td><span>#{s}</span></td><td><span>&rarr;</span></td><td>#{a}</td><td><span class='X'>X</span></td></tr>"
   siblings = $.grep(
     favoritesTable.find('tr'),
-  (e, i) ->
-    sp = $(e).find 'td:first span'
-    return sp.html() == s
+    (e, i) ->
+      sp = $(e).find 'td:first span'
+      return sp.html() == s
   )
   if siblings.length == 0
     favoritesTable.append row
@@ -383,15 +383,19 @@ insertFilter = (f, t) ->
   x.text 'X'
   x.attr 'title', 'Delete filter.'
   x.tooltip()
-  filterTable.append(row)
+  rows = filterTable.find 'tr:not(:has(th))'
+  if rows.length
+    $(rows[0]).before row
+  else
+    filterTable.append row
   filterTable.show()
   applyAllFilters()
 # convert the stuff entered into the filter maker widget into something we can push into the filters list
 makeFilter = (must, text) ->
   rx = new RegExp '\\b' + text + '\\b', 'i'
-  s = "#{rx}"
+  s = "#{rx}".toLowerCase()
   for f in filters
-    throw "You already have a filter based on '#{text}'" if s == "#{f.x}"
+    throw "You already have a filter based on '#{text}'" if s == "#{f.x}".toLowerCase()
   return { m: must, x: rx }
 # filter all results
 applyAllFilters = ->
