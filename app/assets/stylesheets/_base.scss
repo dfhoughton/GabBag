@@ -167,6 +167,11 @@ body {
   font-size: 1.5em;
 }
 
+#friend_table td:first-child {
+  @include border-radius(.2em);
+  padding: 0 .2em;
+}
+
 #filter, #clear {
   @extend .span_button;
   margin: .5em;
@@ -261,6 +266,7 @@ margin: 1em auto 0 auto;
 }
 
 .notifications {
-  background-color: deepskyblue;
+  background-color: white;
+  color: $blue;
   cursor: pointer;
 }
