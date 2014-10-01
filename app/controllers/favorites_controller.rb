@@ -24,7 +24,6 @@ class FavoritesController < ApplicationController
   end
 
   def destroy
-    puts "DESTROY!!"
     source, child = params[:source], params[:anagram]
     anagram = Anagram.fetch source, child
     return render json: { error: "Unable to delete favorite #{source} => #{child}"} if anagram.nil?

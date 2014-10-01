@@ -16,6 +16,12 @@ class NotificationsController < ApplicationController
     render json: notifications
   end
 
+  # mark a collection of notifications as read
+  def read
+    current_user.notifications.where(:id => params[:nids]).update_all :read => true
+    render json: { message: "all read" }
+  end
+
   private
 
   # fetch the right variety of the current user's notifications
@@ -44,7 +50,9 @@ class NotificationsController < ApplicationController
           if type[id]
             body['notification'].destroy
           else
+            n = body['notification']
             body.delete 'notification'
+            body['nid'] = n.id
             keep << body
             type[id] = true
           end

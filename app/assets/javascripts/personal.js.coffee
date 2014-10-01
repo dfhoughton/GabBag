@@ -1,6 +1,6 @@
 # page initialization
 body = $ 'body'
-subW = filterMaker = friendDiv = friends = last = filterTable = favoritesTable = clickedAnagram = results = source = form = undefined
+notW = subW = filterMaker = friendDiv = friends = last = filterTable = favoritesTable = clickedAnagram = results = source = form = undefined
 anagrams = []
 filters = []
 acquaintances = {} # map from email addresses to friend information
@@ -133,7 +133,8 @@ share = (ana, div) ->
     for own i of recipients
       shared.push i
     if shared.length
-      data = recipients: shared, source: ana.source, anagram: ana.anagram
+      data =
+        recipients: shared, source: ana.source, anagram: ana.anagram
       $.ajax(
         type: context.anagrams.share.method
         url: context.anagrams.share.url
@@ -153,7 +154,7 @@ makeFavorite = (ana) ->
     data: ana
     success: (data) ->
       insertAna data if data.anagram
-      # TODO handle errors
+    # TODO handle errors
   )
 # hide the first few cells in the favorites section so only the first anagram from a particular source has them
 hideFirst = (row) ->
@@ -180,9 +181,9 @@ insertAna = (ana) ->
   row = $ "<tr><td><span>#{s}</span></td><td><span>&rarr;</span></td><td>#{a}</td><td><span class='X'>X</span></td></tr>"
   siblings = $.grep(
     favoritesTable.find('tr'),
-    (e, i) ->
-      sp = $(e).find 'td:first span'
-      return sp.html() == s
+  (e, i) ->
+    sp = $(e).find 'td:first span'
+    return sp.html() == s
   )
   if siblings.length == 0
     favoritesTable.append row
@@ -395,7 +396,7 @@ applyAllFilters = ->
   body.css 'cursor', 'progress'
   yankWidget()
   h = filterTable.find 'tr:has(th)'
-  setTimeout( # force this to be rendered separately
+  setTimeout(# force this to be rendered separately
     ->
       $('#results li').hide()
       hidden = 0
@@ -478,7 +479,8 @@ subWidget = (rs, data) ->
 # deletes a friend
 deleteFriend = (email) ->
   acquaintances[email] = undefined
-  row = ( $.grep $('#friend_table tr'), (e,i) -> $(e).find('td:first').text() == email )[0]
+  row = ( $.grep $('#friend_table tr'), (e, i) ->
+    $(e).find('td:first').text() == email )[0]
   $(row).remove() if row?
 # takes friend data and adds it to the friends table
 addFriend = (data) ->
@@ -596,6 +598,87 @@ findFriend = ->
     search e if e.which == 13
   $('#friend').after div
   ip.focus()
+# make the doohicky that shows shared anagrams from a particular individual
+makeNotificationWidget = (notifications) ->
+  notW.remove() if notW
+  notW = div = roundDiv cz: 'notifier'
+  table = $ '<table></table>'
+  div.append table
+  notifications.sort (a,b) ->
+    [ c, d ] = [ a.anagram.source, b.anagram.source ]
+    if c < d
+      -1
+    else if d < c
+      1
+    else
+      [ c, d ] = [ a.anagram.anagram, b.anagram.anagram ]
+      if c < d
+        -1
+      else if d < c
+        1
+      else
+        0
+  w1 = w2 = undefined
+  for n in notifications
+    do (n) ->
+      a = n.anagram
+      [ w3, w4 ] = [ a.source, a.anagram ]
+      return if w1 == w3 and w2 ==w4
+      row = $ '<tr><td></td><td></td><td></td></tr>'
+      tds = row.find 'td'
+      $(tds[2]).text w4
+      if w1 != w3
+        $(tds[0]).text a.source
+        $(tds[1]).html '&rarr;'
+      [ w1, w2 ] = [ w3, w4 ]
+      table.append row
+      row.click (e) ->
+        e.stopPropagation()
+        widget = anaWidget a.anagram.split(/\s+/), a.source
+        showWidget widget, row, row
+  bb = $ '<div class="buttonbox"/>'
+  div.append bb
+  xb = xButton()
+  bb.append xb
+  xb.click (e) ->
+    e.stopPropagation()
+    div.remove()
+    notW = undefined
+  xb.focus()
+  return div
+# show all the shared anagrams currently queued up from a particular friend
+showNotifications = (td, notifications) ->
+  div = makeNotificationWidget notifications
+  $('#friend_table').parent().append div
+  centerUnder div, $('#friend_table')
+  nids = []
+  for n in notifications
+    nids.push n.nid
+  $.ajax(
+    type: context.notifications.read.method
+    url: context.notifications.read.url
+    data: { nids: nids}
+    success: (data) ->
+      td.notify data.error if data.data
+  )
+# queue up a notification for display
+notify = (n) ->
+  friend = acquaintances[n.from]
+  return unless friend?
+  notifications = friend['notifications'] ||= []
+  notifications.push n
+  row = ( $.grep $('#friend_table tr'), (e, i) ->
+    $(e).find('td:first').text() == n.from )[0]
+  if row? # should not be necessary
+    td = $(row).find('td:first')
+    unless td.hasClass 'notifications'
+      td.addClass 'notifications'
+      td.click (e) ->
+        e.stopPropagation()
+        td.removeClass 'notifications'
+        td.unbind 'click'
+        showNotifications td, friend['notifications']
+        friend['notifications'] = []
 # look for fresh notices
 poll = (url, method) ->
   url ||= context.notifications.recent.url
@@ -607,7 +690,7 @@ poll = (url, method) ->
       for n in notifications
         switch n.type
           when 'share'
-            console.log 'share', n
+            notify n
           when 'friend'
             f = acquaintances[n.email]
             if f?
@@ -620,7 +703,8 @@ poll = (url, method) ->
               else
                 deleteFriend f.email
             else if n.change == 1
-              data = email: n.email, own: false, mutual: false, id: n.id, other_id: n.other_id
+              data =
+                email: n.email, own: false, mutual: false, id: n.id, other_id: n.other_id
               addFriend data
           when 'subscribe'
             f = acquaintances[n.email]
@@ -628,16 +712,19 @@ poll = (url, method) ->
               f.subscribed_to_me = n.change == 1
               addFriend f
             else # we should never get here
-              data = email: n.email, own: true, mutual: true, id: n.id, other_id: n.other_id
+              data =
+                email: n.email, own: true, mutual: true, id: n.id, other_id: n.other_id
               data.subscribed_to_me = n.change == 1
               addFriend data
-          else throw new Error("unhandled notification type: #{n.type}")
+          else
+            throw new Error("unhandled notification type: #{n.type}")
   )
 # makes sure the relationship symbols in the explanatory text match the generated doodads
 insertSymbolDefinitions = () ->
   terms = $ '#symbol_definitions dt'
   for own k, v of context.relSymbols
-    dt = ( $.grep terms, (e,i) -> $(e).text() == k )[0]
+    dt = ( $.grep terms, (e, i) ->
+      $(e).text() == k )[0]
     $(dt).html v
 # all the stuff to do as soon as we have the page's contextual information (really just app information)
 postInit = () ->
@@ -652,6 +739,7 @@ postInit = () ->
     success: (data) ->
       for d in data.friends
         addFriend d
+      poll(context.notifications.unread.url, context.notifications.unread.method)
   )
   $.ajax(
     type: context.favorites.mine.method
@@ -660,7 +748,6 @@ postInit = () ->
       for a in data.favorites
         insertAna a
   )
-  poll(context.notifications.unread.url, context.notifications.unread.method)
 
 # the template should call this, filling in the page context
 # TODO: document the expected values

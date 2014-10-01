@@ -113,7 +113,7 @@ body {
   cursor: pointer;
 }
 
-.rearranger, .filter_maker, #find_friend, .subscribe {
+.rearranger, .filter_maker, #find_friend, .subscribe, .notifier {
   display: table;
   box-shadow: 0 0 10px black;
   font-size: 8pt;
@@ -122,6 +122,14 @@ body {
   color: black;
   background-color: white;
   @include border-radius(1em);
+}
+
+.notifier table {
+  margin: 1em;
+}
+
+.notifier tr {
+  cursor: pointer;
 }
 
 #find_friend {
@@ -203,6 +211,10 @@ margin: 1em auto 0 auto;
   font-size: 2em;
 }
 
+#favorites_table tr {
+  cursor: pointer;
+}
+
 .an {
   cursor: pointer;
 }
@@ -245,5 +257,10 @@ margin: 1em auto 0 auto;
 
 .R.mine {
   background-color: $mine;
+  cursor: pointer;
+}
+
+.notifications {
+  background-color: deepskyblue;
   cursor: pointer;
 }
