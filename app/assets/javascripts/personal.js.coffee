@@ -145,6 +145,8 @@ share = (ana, div) ->
           else
             b.notify data.message, 'info'
       )
+    else
+      b.notify 'No friends selected.'
   return d
 # saves a favorite to the anagrams table and, upon success, displays it in the favorites table
 makeFavorite = (ana) ->
@@ -649,8 +651,9 @@ makeNotificationWidget = (notifications) ->
 # show all the shared anagrams currently queued up from a particular friend
 showNotifications = (td, notifications) ->
   div = makeNotificationWidget notifications
-  $('#friend_table').parent().append div
-  centerUnder div, $('#friend_table')
+  locate td, div
+  td.parent().append div
+  centerUnder div, td
   nids = []
   for n in notifications
     nids.push n.nid
