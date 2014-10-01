@@ -15,6 +15,7 @@ class FavoritesController < ApplicationController
     existing = current_user.favorites.where(anagram: anagram).take
     return render json: { message: "Nothing to do." } unless existing.nil?
     f = current_user.favorites.create anagram: anagram
+    anagram.notify_all current_user, current_user.subscribers
     anagram = {
         id: f.id,
         source: anagram.phrase.text,

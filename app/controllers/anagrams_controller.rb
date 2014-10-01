@@ -58,17 +58,7 @@ class AnagramsController < ApplicationController
     shares = 0
     recipients.each do |recipient|
       return render json: {error: 'Unsuitable recipient.'} unless recipient.mutual
-      message = {
-          type: :share,
-          from: current_user.email,
-          anagram: {
-              id: anagram.id,
-              source: anagram.phrase.text,
-              anagram: anagram.child.text,
-              favored: anagram.favored
-          }
-      }
-      Notification.create user: recipient.other, body: message.to_json
+      anagram.notify current_user, recipient.other
       shares += 1
     end
     return render json: {error: 'No suitable recipients.'} if shares == 0
