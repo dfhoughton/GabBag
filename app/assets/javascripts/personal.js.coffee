@@ -20,7 +20,7 @@ init = ->
       body.css 'cursor', 'progress'
   $('#clear').click ->
     filters.splice 0, filters.length
-    filterTable.find('tr').remove()
+    filterTable.find('tr:not(:has(th))').remove()
     filterTable.hide()
     applyAllFilters()
   $('#filter').click ->
@@ -56,6 +56,7 @@ init = ->
   # ajax anagram generation
   form.submit ->
     f = $ '#full_text'
+    results.find('li').remove()
     source = f.val()
     $.ajax(
       type: 'GET'
@@ -81,7 +82,7 @@ showAnagrams = ->
     for i in [ 0..anagrams.length - 1 ]
       li = handleAnagram i
       results.append li
-      applyFilters li
+      li.hide() if shouldHide li[0]
   else
     form.find('input').notify 'No anagrams found!'
 # create a list item and its associated click handler
@@ -404,28 +405,25 @@ applyAllFilters = ->
   h = filterTable.find 'tr:has(th)'
   setTimeout(# force this to be rendered separately
     ->
-      $('#results li').hide()
-      hidden = 0
-      for li in $ '#results li'
-        hidden += applyFilters $(li)
-      h.find('span').text hidden
+      lis = $ '#results li'
+      lis.show()
+      hideable = $.grep lis, (e,i) -> shouldHide e
+      $(hideable).hide()
+      h.find('span').text hideable.length
       h.show()
       body.css 'cursor', 'default'
-    1
+    0
   )
-# applies all existing filters to a given li in the results
-applyFilters = (li) ->
-  li.show()
-  t = li.text()
+# checks whether existing filters apply to this item
+shouldHide = (li) ->
+  t = li.innerHTML
   for f in filters
     if f.x.test t
       if !f.m
-        li.hide()
-        return 1
+        return true
     else if f.m
-      li.hide()
-      return 1
-  return 0
+      return true
+  return false
 # friend code
 # add a friend to the friend list in alphabetical order
 addRelClass = (span, data) ->
