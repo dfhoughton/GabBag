@@ -270,3 +270,11 @@ margin: 1em auto 0 auto;
   color: $blue;
   cursor: pointer;
 }
+
+#results li {
+  cursor: pointer;
+}
+
+li.more {
+  list-style-type: none;
+}

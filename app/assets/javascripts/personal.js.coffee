@@ -3,6 +3,9 @@ body = $ 'body'
 notW = subW = filterMaker = friendDiv = friends = last = filterTable = favoritesTable = clickedAnagram = results = source = form = undefined
 anagrams = []
 filters = []
+filterings =
+  passed: []
+  failed: []
 acquaintances = {} # map from email addresses to friend information
 context = {} # must be initialized by controller
 
@@ -15,14 +18,18 @@ init = ->
   $('#trial > input').first().keypress (e) ->
     if e.which == 13
       e.preventDefault()
+      body.css 'cursor', 'progress'
+      filterings.passed = []
+      filterings.failed = []
       $('#trial').submit()
       $('#full input').first().attr 'disabled', 'disabled'
-      body.css 'cursor', 'progress'
   $('#clear').click ->
     filters.splice 0, filters.length
     filterTable.find('tr:not(:has(th))').remove()
     filterTable.hide()
-    applyAllFilters()
+    $(filterings.failed).show()
+    filterings.passed = filterings.passed.concat filterings.failed
+    filterings.failed = []
   $('#filter').click ->
     addFilter()
   $('#friend').click ->
@@ -68,13 +75,65 @@ init = ->
         if data.error
           f.notify data.error
         else
+          if data.warning
+            f.notify data.warning, 'warn'
           anagrams = data.anagrams
           showAnagrams()
+          addMoreLink data.more if data.more
     )
     return false
 
 ## definitions of the functions employed above
 
+# adds link that fetches the next random batch
+addMoreLink = (phrase) ->
+  link = $ '<a href="javascript:void(0)" title="Click to get another random sample.">more</a>'
+  li = $ '<li class="more"/>'
+  li.append link
+  results.append li
+  link.tooltip()
+  link.click (e) ->
+    e.stopPropagation()
+    f = $ '#full_text'
+    li.attr 'disabled', true
+    f.attr 'disabled', true
+    li.remove()
+    body.css 'cursor', 'progress'
+    $.ajax(
+      type: 'GET'
+      url: form.attr 'action'
+      data: full: text: phrase
+      success: (data) ->
+        f.removeAttr 'disabled'
+        body.css 'cursor', 'default'
+        if data.error
+          li.notify data.error
+        else
+          if data.warning
+            li.notify data.warning, 'warn'
+          cullDuplicates data.anagrams
+          addBatch data.anagrams
+          addMoreLink phrase
+    )
+cullDuplicates = (list) ->
+  known = {}
+  known[a.join ' '] = true for a in anagrams
+  for a, i in list.reverse()
+    k = a.join ' '
+    list.splice i, 1 if known[k]
+addBatch = (list) ->
+  alsoHide = []
+  for a in list
+    anagrams.push a
+    li = handleAnagram a
+    results.append li
+    li = li[0]
+    a = if shouldHide li then filterings.failed else filterings.passed
+    a.push li
+  $(filterings.failed).hide()
+  h = filterTable.find 'tr:has(th)'
+  h.find('span').text filterings.failed.length
+  h.show()
 # code for adding anagrams to the list
 showAnagrams = ->
   results.empty()
@@ -82,16 +141,22 @@ showAnagrams = ->
     for i in [ 0..anagrams.length - 1 ]
       li = handleAnagram i
       results.append li
-      li.hide() if shouldHide li[0]
+      li = li[0]
+      a = if shouldHide li then filterings.failed else filterings.passed
+      a.push li
+    $(filterings.failed).hide()
   else
     form.find('input').notify 'No anagrams found!'
+  h = filterTable.find 'tr:has(th)'
+  h.find('span').text filterings.failed.length
+  h.show()
 # create a list item and its associated click handler
 handleAnagram = (i) ->
-  a = anagrams[i]
+  a = if i instanceof Array then i else anagrams[i]
   li = $ '<li/>'
   li.text a.join ' '
   li.click ->
-    widget = anaWidget anagrams[i], source
+    widget = anaWidget a, source
     showWidget widget, li, results
   return li
 # returns whether there is anyone with whom you can share anagrams
@@ -341,6 +406,7 @@ makeInverter = (an, f, x, row) ->
   m = if f.m then 'always' else 'never'
   s = "#{f.x}"
   an.text m
+  an.unbind 'click'
   an.click (e) ->
     e.stopPropagation()
     inverted = { x: f.x, m: !f.m }
@@ -349,7 +415,7 @@ makeInverter = (an, f, x, row) ->
         filters[i] = inverted
         break
     makeInverter an, inverted, x, row
-    applyAllFilters()
+    applyAllFilters invertingFilter, inverted
   x.unbind 'click'
   x.click (e) ->
     e.stopPropagation()
@@ -360,7 +426,7 @@ makeInverter = (an, f, x, row) ->
     row.remove()
     if filters.length == 0
       filterTable.hide()
-    applyAllFilters()
+    applyAllFilters removingFilter
 # generates the frequently-used cancel button -- just the node, not the code
 xButton = (type) ->
   b = $ '<button class="X">X</button>'
@@ -390,7 +456,7 @@ insertFilter = (f, t) ->
   else
     filterTable.append row
   filterTable.show()
-  applyAllFilters()
+  applyAllFilters addingFilter, f
 # convert the stuff entered into the filter maker widget into something we can push into the filters list
 makeFilter = (must, text) ->
   rx = new RegExp '\\b' + text + '\\b', 'i'
@@ -398,18 +464,53 @@ makeFilter = (must, text) ->
   for f in filters
     throw "You already have a filter based on '#{text}'" if s == "#{f.x}".toLowerCase()
   return { m: must, x: rx }
+removingFilter = ->
+  [ f2, p2 ] = [ [], [] ]
+  for li in filterings.failed
+    a = if shouldHide li then f2 else p2
+    a.push li
+  $(p2).show()
+  filterings.passed = filterings.passed.concat p2
+  filterings.failed = f2
+addingFilter = (f) ->
+  [ f2, p2 ] = [ [], [] ]
+  for li in filterings.passed
+    a = p2
+    if f.x.test li.innerHTML
+      if !f.m
+        a = f2
+    else if f.m
+      a = f2
+    a.push li
+  $(f2).hide()
+  filterings.failed = filterings.failed.concat f2
+  filterings.passed = p2
+invertingFilter = (f) ->
+  [ f2, p2 ] = [ [], [] ]
+  for li in filterings.passed
+    a = p2
+    if f.x.test li.innerHTML
+      if !f.m
+        a = f2
+    else if f.m
+      a = f2
+    a.push li
+  for li in filterings.failed
+    a = if shouldHide li then f2 else p2
+    a.push li
+  $(p2).show()
+  $(f2).hide()
+  filterings.passed = p2
+  filterings.failed = f2
 # filter all results
-applyAllFilters = ->
+applyAllFilters = (callback, filter) ->
   body.css 'cursor', 'progress'
   yankWidget()
-  h = filterTable.find 'tr:has(th)'
   setTimeout(# force this to be rendered separately
     ->
-      lis = $ '#results li'
-      lis.show()
-      hideable = $.grep lis, (e,i) -> shouldHide e
-      $(hideable).hide()
-      h.find('span').text hideable.length
+      callback(filter)
+      h = filterTable.find 'tr:has(th)'
+      h.find('span').text filterings.failed.length
       h.show()
       body.css 'cursor', 'default'
     0
