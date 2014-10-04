@@ -113,7 +113,7 @@ body {
   cursor: pointer;
 }
 
-.rearranger, .filter_maker, #find_friend, .subscribe, .notifier {
+.rearranger, .filter_maker, #find_friend, .subscribe, .notifier, .info {
   display: table;
   box-shadow: 0 0 10px grey;
   font-size: 8pt;
@@ -121,6 +121,15 @@ body {
   padding: .5em;
   color: black;
   background-color: white;
+  @include border-radius(1em);
+}
+
+.info {
+  padding: 1em;
+}
+
+.info button:last-of-type {
+  float: right;
   @include border-radius(1em);
 }
 

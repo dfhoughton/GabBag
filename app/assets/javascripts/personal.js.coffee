@@ -1,6 +1,5 @@
 # page initialization
-body = $ 'body'
-shown = notW = subW = filterMaker = friendDiv = friends = last = filterTable = favoritesTable = clickedAnagram = results = source = form = undefined
+body = screen = info = shown = notW = subW = filterMaker = friendDiv = friends = last = filterTable = favoritesTable = clickedAnagram = results = source = form = undefined
 anagrams = []
 filters = []
 filterings =
@@ -13,6 +12,7 @@ context = {} # must be initialized by controller
 init = ->
   shown = $ '#shown'
   shown.hide()
+  body = $ 'body'
   filterTable = $ '#filter_table'
   favoritesTable = $ '#favorites_table'
   results = $ '#results'
@@ -44,28 +44,7 @@ init = ->
 
   # wire up the question marks
   for e in $ '.explanation'
-    do (e) ->
-      e = $ e
-      s = $ '<span class="qmark">?</span>'
-      s.insertBefore(e);
-      e.remove()
-      e.removeClass("explanation")
-      for c in e.attr('class').split /\s+/
-        s.addClass(c)
-      s.click ->
-        e.dialog(
-          open: (e, ui) ->
-            last.dialog 'close' if last
-            last = $ this
-            $(this.parentNode).find('button').focus()
-          dialogClass: "no-close"
-          buttons: [
-            text: "OK"
-            click: ->
-              $(this).dialog "close";
-              last = undefined
-          ]
-        )
+    explain e
   # ajax anagram generation
   form.submit ->
     f = $ '#full_text'
@@ -91,6 +70,56 @@ init = ->
 
 ## definitions of the functions employed above
 
+# hide explanatory text
+hideInfo = ->
+  if info
+    screen.remove()
+    screen = undefined
+    info.remove()
+    info = undefined
+# prepare an element to show explanatory text
+explain = (e) ->
+  e = $ e unless e instanceof jQuery
+  title = e.attr 'title'
+  e.removeAttr 'title'
+  s = $ '<span class="qmark">?</span>'
+  s.insertBefore(e);
+  e.remove()
+  e.removeClass("explanation")
+  for c in e.attr('class').split /\s+/
+    s.addClass(c)
+  s.click ->
+    hideInfo()
+    info = div = roundDiv cz: 'info'
+    if title?
+      h = $ '<h4/>'
+      h.text title
+      div.append h
+    div.append e
+    rb = $ '<button class="X">OK</button>'
+    div.append rb
+    rb.focus()
+    rb.click (e) ->
+      e.stopPropagation()
+      hideInfo()
+    locate s, div
+    z = div.zIndex()
+    screen = $ '<div id="screen"/>'
+    screen.css
+      zIndex: z
+      position: 'absolute'
+      top: 0
+      left: 0
+      width: body.width()
+      height: body.height()
+      opacity: 0
+    screen.click (e) ->
+      hideInfo()
+    body.append screen
+    console.log screen[0], screen.parent()[0]
+    div.zIndex z + 1
+    s.parent().append div
+    centerUnder div, s
 # adds link that fetches the next random batch
 addMoreLink = (phrase) ->
   link = $ '<a href="javascript:void(0)" title="Click to get another random sample.">more</a>'
