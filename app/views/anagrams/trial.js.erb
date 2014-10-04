@@ -1,4 +1,4 @@
-var r = $('#results');
+var r = $('#results'), li;
 $('#trial > input').removeAttr('disabled');
 $('body').css('cursor', 'default');
 <% if @error %>
@@ -6,7 +6,9 @@ $('#trial').notify("<%= escape_javascript @error %>", 'error');
 <% else %>
 r.find('li').remove();
 <% (0...@anagrams.length).each do |i| %>
-r.append($('<li/>').text('<%= @anagrams[i].join(' ') %>'));
+li = $('<li><span/></li>');
+li.find('span').text('<%= @anagrams[i].join(' ') %>');
+r.append(li);
 <% end %>
 <% if @anagrams.length == 0 %>
 r.notify('Sorry, no anagrams!', 'error');

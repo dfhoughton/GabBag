@@ -153,8 +153,8 @@ showAnagrams = ->
 # create a list item and its associated click handler
 handleAnagram = (i) ->
   a = if i instanceof Array then i else anagrams[i]
-  li = $ '<li/>'
-  li.text a.join ' '
+  li = $ '<li><span/></li>'
+  li.find('span').text a.join ' '
   li.click ->
     widget = anaWidget a, source
     showWidget widget, li, results
@@ -351,13 +351,15 @@ centerUnder = (move, fixed) ->
 addFilter = ->
   return if filterMaker?
   filterMaker = div = roundDiv cz: 'filter_maker'
-  ti = $ '<label>word <input/></label>'
+  ti = $ '<label>find <input/></label>'
   text = ti.find('input')
+  br = $ '<input type="checkbox" title="Treat the contents of the text field as a javascript regular expression.">regex</input>'
+  br.tooltip()
   ba = $ '<input type="radio" name="when" value="always" checked="true">always</input>'
   bn = $ '<input type="radio" name="when" value="never">never</input>'
   bc = $ '<button>Create</button>'
   bx = xButton()
-  div.append(ti).append(ba).append(bn).append(bc).append(bx)
+  div.append(ti).append(br).append(ba).append(bn).append(bc).append(bx)
   div.children().addClass('in_maker') # force specificity in CSS
   done = ->
     div.remove()
@@ -367,21 +369,23 @@ addFilter = ->
     done()
   doit = (e) ->
     t = $.trim text.val()
-    if t.length == 0
-      text.notify 'There is no word to filter on.'
-      return
-    if /\s/.test t
-      text.notify 'Only type a single word.'
-      return
-    if /\W/.test t
-      text.notify 'The word to filter on should contain only word characters.'
-      return
+    rx = br.prop 'checked'
+    unless rx
+      if t.length == 0
+        text.notify 'There is no word to filter on.'
+        return
+      if /\s/.test t
+        text.notify 'Only type a single word.'
+        return
+      if /\W/.test t
+        text.notify 'The word to filter on should contain only word characters.'
+        return
     try
-      f = makeFilter ba.prop('checked'), t
+      f = makeFilter ba.prop('checked'), t, rx
     catch error
       text.notify error
       return
-    insertFilter f, t
+    insertFilter f, t, rx
     done()
   ti.keypress (e) ->
     doit() if e.which == 13
@@ -440,10 +444,11 @@ roundDiv = (opts) ->
   d.attr 'id', opts.id if opts.id?
   return d
 # inject a filter into the filters list
-insertFilter = (f, t) ->
+insertFilter = (f, t, rx) ->
   filters.push f
   m = if f.m then 'always' else 'never'
-  row = $ "<tr><td>&ldquo;#{t}&rdquo;</td><td class='an'></td><td><span class='X'/></td></tr>"
+  html = if rx then "/#{t}/" else "&ldquo;#{t}&rdquo;"
+  row = $ "<tr><td>#{html}</td><td class='an'></td><td><span class='X'/></td></tr>"
   an = row.find 'td[class=an]'
   x = row.find 'span'
   makeInverter an, f, x, row
@@ -458,8 +463,9 @@ insertFilter = (f, t) ->
   filterTable.show()
   applyAllFilters addingFilter, f
 # convert the stuff entered into the filter maker widget into something we can push into the filters list
-makeFilter = (must, text) ->
-  rx = new RegExp '\\b' + text + '\\b', 'i'
+makeFilter = (must, text, rx) ->
+  text = "\\b#{text}\\b" unless rx
+  rx = new RegExp text, 'i'
   s = "#{rx}".toLowerCase()
   for f in filters
     throw "You already have a filter based on '#{text}'" if s == "#{f.x}".toLowerCase()

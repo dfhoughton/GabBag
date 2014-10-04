@@ -132,6 +132,10 @@ body {
   cursor: pointer;
 }
 
+.notifier td:first-child {
+  text-align: right;
+}
+
 #find_friend {
   margin-left: auto;
   margin-right: auto;
@@ -218,6 +222,14 @@ margin: 1em auto 0 auto;
 
 #favorites_table tr {
   cursor: pointer;
+}
+
+#favorites_table td {
+  vertical-align: text-top;
+}
+
+#favorites_table td:first-child {
+  text-align: right;
 }
 
 .an {
