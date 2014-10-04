@@ -23,6 +23,7 @@ init = ->
       body.css 'cursor', 'progress'
       filterings.passed = []
       filterings.failed = []
+      shown.hide()
       $('#trial').submit()
       $('#full input').first().attr 'disabled', 'disabled'
   $('#clear').click ->
@@ -31,6 +32,9 @@ init = ->
     filterTable.hide()
     $(filterings.failed).show()
     filterings.passed = filterings.passed.concat filterings.failed
+    if filterings.passed.length
+      shown.find('span').text filterings.passed.length
+      shown.show()
     filterings.failed = []
   $('#filter').click ->
     addFilter()
