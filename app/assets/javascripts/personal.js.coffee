@@ -352,14 +352,17 @@ addFilter = ->
   return if filterMaker?
   filterMaker = div = roundDiv cz: 'filter_maker'
   ti = $ '<label>find <input/></label>'
+  div.append ti
   text = ti.find('input')
-  br = $ '<input type="checkbox" title="Treat the contents of the text field as a javascript regular expression.">regex</input>'
-  br.tooltip()
+  div.append $ '<input type="radio" name="type" title="Look for whole words." checked="true" value="w">word</input>'
+  div.append $ '<input type="radio" name="type" title="Treat the contents of the text field as a prefix." value="pre">prefix</input>'
+  div.append $ '<input type="radio" name="type" title="Treat the contents of the text field as a javascript regular expression." value="rx">regex</input>'
+  div.find('input').tooltip()
   ba = $ '<input type="radio" name="when" value="always" checked="true">always</input>'
   bn = $ '<input type="radio" name="when" value="never">never</input>'
   bc = $ '<button>Create</button>'
   bx = xButton()
-  div.append(ti).append(br).append(ba).append(bn).append(bc).append(bx)
+  div.append(ba).append(bn).append(bc).append(bx)
   div.children().addClass('in_maker') # force specificity in CSS
   done = ->
     div.remove()
@@ -369,8 +372,12 @@ addFilter = ->
     done()
   doit = (e) ->
     t = $.trim text.val()
-    rx = br.prop 'checked'
-    unless rx
+    type = div.find('input[name=type]:checked').val()
+    if type == 'rx'
+      if t.length == 0
+        text.notify 'You have provided no regular expression.'
+        return
+    else
       if t.length == 0
         text.notify 'There is no word to filter on.'
         return
@@ -381,11 +388,11 @@ addFilter = ->
         text.notify 'The word to filter on should contain only word characters.'
         return
     try
-      f = makeFilter ba.prop('checked'), t, rx
+      f = makeFilter ba.prop('checked'), t, type
     catch error
       text.notify error
       return
-    insertFilter f, t, rx
+    insertFilter f, t, type
     done()
   ti.keypress (e) ->
     doit() if e.which == 13
@@ -444,10 +451,16 @@ roundDiv = (opts) ->
   d.attr 'id', opts.id if opts.id?
   return d
 # inject a filter into the filters list
-insertFilter = (f, t, rx) ->
+insertFilter = (f, t, type) ->
   filters.push f
   m = if f.m then 'always' else 'never'
-  html = if rx then "/#{t}/" else "&ldquo;#{t}&rdquo;"
+  html = switch type
+    when 'w'
+      "&ldquo;#{t}&rdquo;"
+    when 'pre'
+      "&ldquo;#{t}&hellip;&rdquo;"
+    when 'rx'
+      "/#{t}/"
   row = $ "<tr><td>#{html}</td><td class='an'></td><td><span class='X'/></td></tr>"
   an = row.find 'td[class=an]'
   x = row.find 'span'
@@ -463,12 +476,18 @@ insertFilter = (f, t, rx) ->
   filterTable.show()
   applyAllFilters addingFilter, f
 # convert the stuff entered into the filter maker widget into something we can push into the filters list
-makeFilter = (must, text, rx) ->
-  text = "\\b#{text}\\b" unless rx
+makeFilter = (must, text, type) ->
+  text = switch type
+    when 'w'
+      "\\b#{text}\\b"
+    when 'pre'
+      "\\b#{text}"
+    when 'rx'
+      text
   rx = new RegExp text, 'i'
   s = "#{rx}".toLowerCase()
   for f in filters
-    throw "You already have a filter based on '#{text}'" if s == "#{f.x}".toLowerCase()
+    throw "You already have a filter of this sort" if s == "#{f.x}".toLowerCase()
   return { m: must, x: rx }
 removingFilter = ->
   [ f2, p2 ] = [ [], [] ]
