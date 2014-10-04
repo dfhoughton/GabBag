@@ -58,6 +58,7 @@
         <%= form_for :full, :html => {:id => 'trial'}, url: {controller: 'anagrams', action: :full} do |f| %>
             <%= f.text_field :text, class: 'centered', 'data-toggle' => :tooltip, 'data-placement' => :bottom, :title => 'Type text and press enter.' %>
         <% end %>
+        <h5 id="shown">displayed: <span></span></h5>
         <ol id="results"></ol>
       </div>
     </div>

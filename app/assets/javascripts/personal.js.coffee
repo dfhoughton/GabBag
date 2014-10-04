@@ -1,6 +1,6 @@
 # page initialization
 body = $ 'body'
-notW = subW = filterMaker = friendDiv = friends = last = filterTable = favoritesTable = clickedAnagram = results = source = form = undefined
+shown = notW = subW = filterMaker = friendDiv = friends = last = filterTable = favoritesTable = clickedAnagram = results = source = form = undefined
 anagrams = []
 filters = []
 filterings =
@@ -11,6 +11,8 @@ context = {} # must be initialized by controller
 
 # stuff to do on page loading
 init = ->
+  shown = $ '#shown'
+  shown.hide()
   filterTable = $ '#filter_table'
   favoritesTable = $ '#favorites_table'
   results = $ '#results'
@@ -145,8 +147,11 @@ showAnagrams = ->
       a = if shouldHide li then filterings.failed else filterings.passed
       a.push li
     $(filterings.failed).hide()
+    shown.find('span').text filterings.passed.length
+    shown.show()
   else
     form.find('input').notify 'No anagrams found!'
+    shown.hide()
   h = filterTable.find 'tr:has(th)'
   h.find('span').text filterings.failed.length
   h.show()
@@ -537,6 +542,11 @@ applyAllFilters = (callback, filter) ->
       h = filterTable.find 'tr:has(th)'
       h.find('span').text filterings.failed.length
       h.show()
+      if filterings.passed.length
+        shown.find('span').text filterings.passed.length
+        shown.show()
+      else
+        shown.hide()
       body.css 'cursor', 'default'
     0
   )
